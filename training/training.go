@@ -18,6 +18,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os/user"
+	"path/filepath"
 
 	"github.com/tebeka/snowball"
 
@@ -410,8 +412,23 @@ func RegisterModules(locale string, _modules []Modulem) {
 	modulesm[locale] = append(modulesm[locale], _modules...)
 }
 
+func getResDir(dir string, file string, dir2 ...string) (filePath string) {
+	usr, err := user.Current()
+	if err != nil {
+		fmt.Println("Error getting user home directory:", err)
+		panic("[Training] No user.. (419)")
+	}
+	homeDir := usr.HomeDir
+
+	if len(dir2) > 0 && dir2[0] != "" {
+		return filepath.Join(homeDir, ".marboris", "res", dir, file)
+	}
+
+	return filepath.Join(homeDir, ".marboris", "res", dir, dir2[0], file)
+}
+
 func SerializeCountries() (countries []Country) {
-	err := json.Unmarshal(ReadFile("../../../res/datasets/countries.json"), &countries)
+	err := json.Unmarshal(ReadFile(getResDir("datasets","countries.json")), &countries)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -566,7 +583,7 @@ func NameGetterReplacer(locale, _, response, token string) (string, string) {
 }
 
 func SerializeNames() (names []string) {
-	namesFile := string(ReadFile("../../../res/datasets/names.txt"))
+	namesFile := string(ReadFile(getResDir("datasets","names.txt")))
 
 	names = append(names, strings.Split(strings.TrimSuffix(namesFile, "\n"), "\n")...)
 	return
@@ -725,7 +742,7 @@ func LevenshteinContains(sentence, matching string, rate int) bool {
 }
 
 func SerializeMovies() (movies []Movie) {
-	path := "../../../res/datasets/movies.csv"
+	path := getResDir("datasets", "movies.csv")
 	bytes, err := os.Open(path)
 	if err != nil {
 		bytes, _ = os.Open("../" + path)
@@ -998,7 +1015,7 @@ func CacheIntents(locale string, _intents []Intent) {
 }
 
 func SerializeIntents(locale string) (_intents []Intent) {
-	err := json.Unmarshal(ReadFile("../../../res/locales/"+locale+"/intents.json"), &_intents)
+	err := json.Unmarshal(ReadFile(getResDir("locales", "intents.json", locale)), &_intents)
 	if err != nil {
 		panic(err)
 	}
@@ -1064,7 +1081,7 @@ func removeStopWords(locale string, words []string) []string {
 	if len(words) <= 4 {
 		return words
 	}
-	stopWords := string(ReadFile("../../../res/locales/" + locale + "/stopwords.txt"))
+	stopWords := string(ReadFile(getResDir("locales", "stopwords.txt", locale)))
 	var wordsToRemove []string
 	for _, stopWord := range strings.Split(stopWords, "\n") {
 		for _, word := range words {
@@ -1267,7 +1284,7 @@ func CreateNetwork(locale string, rate float64, input, output Matrix, hiddensNod
 }
 
 func (network Network) Save(fileName string) {
-	outF, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0777)
+	outF, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0777) // 0666 for windows support TODO()
 	if err != nil {
 		panic("Failed to save the network to " + fileName + ".")
 	}
@@ -1517,7 +1534,8 @@ func (network *Network) Train(iterations int) {
 }
 
 func CreateNeuralNetwork(locale string, rate float64, hiddensNodes int) (neuralNetwork Network) {
-	saveFile := "../../../res/locales/" + locale + "/training.json"
+	tempDir := os.TempDir()
+	saveFile := filepath.Join(tempDir, "training.json")
 
 	inputs, outputs := TrainData(locale)
 	neuralNetwork = CreateNetwork(locale, rate, inputs, outputs, hiddensNodes)
