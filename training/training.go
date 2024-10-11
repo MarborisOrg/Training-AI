@@ -420,7 +420,8 @@ func getResDir(dir string, file string, dir2 ...string) (filePath string) {
 	}
 	homeDir := usr.HomeDir
 
-	if len(dir2) > 0 && dir2[0] != "" {
+	// اگر dir2 یک عنصر داشته باشد و این عنصر خالی نباشد
+	if len(dir2) == 0 || dir2[0] == "" {
 		return filepath.Join(homeDir, ".marboris", "res", dir, file)
 	}
 
@@ -1535,7 +1536,7 @@ func (network *Network) Train(iterations int) {
 
 func CreateNeuralNetwork(locale string, rate float64, hiddensNodes int) (neuralNetwork Network) {
 	tempDir := os.TempDir()
-	saveFile := filepath.Join(tempDir, "training.json")
+	saveFile := filepath.Join(tempDir, "Marboris-Training.json")
 
 	inputs, outputs := TrainData(locale)
 	neuralNetwork = CreateNetwork(locale, rate, inputs, outputs, hiddensNodes)

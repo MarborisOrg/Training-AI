@@ -135,7 +135,7 @@ func handleRequest(conn net.Conn) {
 
 func main() {
 	listenPort := "0.0.0.0:" + portDef
-	ln, err := net.Listen("tcp", listenPort) // استفاده از TCP
+	ln, err := net.Listen("tcp", listenPort)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func main() {
 	fmt.Printf("Server is listening on port %s\n", portDef)
 
 	for {
-		conn, err := ln.Accept() // قبول اتصال از کلاینت
+		conn, err := ln.Accept()
 		if err != nil {
 			log.Println("Error accepting connection:", err)
 			continue
