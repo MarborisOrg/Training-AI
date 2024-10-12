@@ -420,7 +420,6 @@ func getResDir(dir string, file string, dir2 ...string) (filePath string) {
 	}
 	homeDir := usr.HomeDir
 
-	// اگر dir2 یک عنصر داشته باشد و این عنصر خالی نباشد
 	if len(dir2) == 0 || dir2[0] == "" {
 		return filepath.Join(homeDir, ".marboris", "res", dir, file)
 	}
