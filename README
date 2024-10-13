@@ -1,0 +1,2 @@
++ go run .
++ go run ./test/training-test.go
