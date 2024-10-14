@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/soudy/mathcat"
+	matrix "marboris/nout/matrix"
 	util "marboris/nout/utils"
-	network "marboris/nout/network"
 )
 
 func GetUserInformation(token string) Information {
@@ -573,12 +573,12 @@ func TrainData(locale string) (inputs, outputs [][]float64) {
 	return inputs, outputs
 }
 
-func CreateNeuralNetwork(locale string, rate float64, hiddensNodes int) (neuralNetwork network.Network) {
+func CreateNeuralNetwork(locale string, rate float64, hiddensNodes int) (neuralNetwork matrix.Network) {
 	tempDir := os.TempDir()
 	saveFile := filepath.Join(tempDir, "Marboris-Training.json")
 
 	inputs, outputs := TrainData(locale)
-	neuralNetwork = network.CreateNetwork(locale, rate, inputs, outputs, hiddensNodes)
+	neuralNetwork = matrix.CreateNetwork(locale, rate, inputs, outputs, hiddensNodes)
 	neuralNetwork.Train(200)
 
 	neuralNetwork.Save(saveFile)
