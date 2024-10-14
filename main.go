@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"marboris/training"
 )
@@ -34,7 +33,6 @@ const (
 func longOperation(rate float64, hiddenNodes int) error {
 	fmt.Printf("Starting long operation with rate=%f and hiddenNodes=%d...\n", rate, hiddenNodes)
 	training.CreateNeuralNetwork("en", rate, hiddenNodes)
-	time.Sleep(1 * time.Second)
 	fmt.Println("Operation completed.")
 
 	return nil
