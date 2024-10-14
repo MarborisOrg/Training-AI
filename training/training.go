@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -33,23 +32,8 @@ func RegisterModules(locale string, _modules []Modulem) {
 	modulesm[locale] = append(modulesm[locale], _modules...)
 }
 
-func getResDir(dir string, file string, dir2 ...string) (filePath string) {
-	usr, err := user.Current()
-	if err != nil {
-		fmt.Println("Error getting user home directory:", err)
-		panic("[Training] No user.. (419)")
-	}
-	homeDir := usr.HomeDir
-
-	if len(dir2) == 0 || dir2[0] == "" {
-		return filepath.Join(homeDir, ".marboris", "res", dir, file)
-	}
-
-	return filepath.Join(homeDir, ".marboris", "res", dir, dir2[0], file)
-}
-
 func SerializeCountries() (countries []Country) {
-	err := json.Unmarshal(util.ReadFile(getResDir("datasets", "countries.json")), &countries)
+	err := json.Unmarshal(util.ReadFile(util.GetResDir("datasets", "countries.json")), &countries)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -204,7 +188,7 @@ func NameGetterReplacer(locale, _, response, token string) (string, string) {
 }
 
 func SerializeNames() (names []string) {
-	namesFile := string(util.ReadFile(getResDir("datasets", "names.txt")))
+	namesFile := string(util.ReadFile(util.GetResDir("datasets", "names.txt")))
 
 	names = append(names, strings.Split(strings.TrimSuffix(namesFile, "\n"), "\n")...)
 	return
@@ -363,7 +347,7 @@ func LevenshteinContains(sentence, matching string, rate int) bool {
 }
 
 func SerializeMovies() (movies []Movie) {
-	path := getResDir("datasets", "movies.csv")
+	path := util.GetResDir("datasets", "movies.csv")
 	bytes, err := os.Open(path)
 	if err != nil {
 		bytes, _ = os.Open("../" + path)
@@ -481,7 +465,7 @@ func CacheIntents(locale string, _intents []Intent) {
 }
 
 func SerializeIntents(locale string) (_intents []Intent) {
-	err := json.Unmarshal(util.ReadFile(getResDir("locales", "intents.json", locale)), &_intents)
+	err := json.Unmarshal(util.ReadFile(util.GetResDir("locales", "intents.json", locale)), &_intents)
 	if err != nil {
 		panic(err)
 	}
@@ -515,7 +499,7 @@ func removeStopWords(locale string, words []string) []string {
 	if len(words) <= 4 {
 		return words
 	}
-	stopWords := string(util.ReadFile(getResDir("locales", "stopwords.txt", locale)))
+	stopWords := string(util.ReadFile(util.GetResDir("locales", "stopwords.txt", locale)))
 	var wordsToRemove []string
 	for _, stopWord := range strings.Split(stopWords, "\n") {
 		for _, word := range words {

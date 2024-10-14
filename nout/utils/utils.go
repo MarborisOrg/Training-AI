@@ -2,8 +2,11 @@
 package utils
 
 import (
+	"fmt"
 	"math"
 	"os"
+	"os/user"
+	"path/filepath"
 )
 
 func MultipliesByTwo(x float64) float64 {
@@ -70,4 +73,19 @@ func Contains(slice []string, text string) bool {
 	}
 
 	return false
+}
+
+func GetResDir(dir string, file string, dir2 ...string) (filePath string) {
+	usr, err := user.Current()
+	if err != nil {
+		fmt.Println("Error getting user home directory:", err)
+		panic("[Training] No user.. (419)")
+	}
+	homeDir := usr.HomeDir
+
+	if len(dir2) == 0 || dir2[0] == "" {
+		return filepath.Join(homeDir, ".marboris", "res", dir, file)
+	}
+
+	return filepath.Join(homeDir, ".marboris", "res", dir, dir2[0], file)
 }
