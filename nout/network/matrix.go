@@ -1,4 +1,4 @@
-package training
+package network
 
 import (
 	"math/rand"
