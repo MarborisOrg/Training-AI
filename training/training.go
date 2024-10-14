@@ -960,7 +960,7 @@ func ApplyFunctionWithIndex(matrix Matrix, fn func(i, j int, x float64) float64)
 func Sum(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
-	resultMatrix = CreateMatrix(Rows(matrix), Columns(matrix))
+	resultMatrix = CreateMatrix(Rows(matrix), Columns(matrix)) // warning is fine (lint)
 
 	return ApplyFunctionWithIndex(matrix, func(i, j int, x float64) float64 {
 		return matrix[i][j] + matrix2[i][j]

@@ -71,12 +71,12 @@ func handleRequest(conn net.Conn) {
 		case "req":
 			req, err = strconv.ParseBool(value)
 			if err != nil {
-				req = true
+				req = requireDef
 			}
 		case "rate":
 			rate, err = strconv.ParseFloat(value, 64)
 			if err != nil {
-				rate = 0.1
+				rate = rateDef
 			}
 		case "hiddensNodes":
 			hiddenNodes, err = strconv.Atoi(value)
