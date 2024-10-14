@@ -1,14 +1,5 @@
 package training
 
-// Week and day (R3)
-func init() {
-	RegisterRule(RuleToday)
-	RegisterRule(RuleTomorrow)
-	RegisterRule(RuleDayOfWeek)
-	RegisterRule(RuleNaturalDate)
-	RegisterRule(RuleDate)
-}
-
 // Init answer (R1)
 func init() {
 	RegisterModules("en", []Modulem{

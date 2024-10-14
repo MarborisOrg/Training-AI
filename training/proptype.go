@@ -14,6 +14,7 @@ import (
 	"github.com/gookit/color"
 
 	"gopkg.in/cheggaaa/pb.v1"
+	util "marboris/utils"
 )
 
 func (network Network) Adjust(derivatives []Derivative) {
@@ -104,10 +105,10 @@ func (network Network) ComputeLastLayerDerivatives() Derivative {
 	lastLayer := network.Layers[l]
 
 	cost := Differencen(network.Output, lastLayer)
-	sigmoidDerivative := Multiplication(lastLayer, ApplyFunction(lastLayer, SubtractsOne))
+	sigmoidDerivative := Multiplication(lastLayer, ApplyFunction(lastLayer, util.SubtractsOne))
 
 	delta := Multiplication(
-		ApplyFunction(cost, MultipliesByTwo),
+		ApplyFunction(cost, util.MultipliesByTwo),
 		sigmoidDerivative,
 	)
 	weights := DotProduct(Transpose(network.Layers[l-1]), delta)
@@ -128,7 +129,7 @@ func (network Network) ComputeDerivatives(i int, derivatives []Derivative) Deriv
 		),
 		Multiplication(
 			network.Layers[l],
-			ApplyFunction(network.Layers[l], SubtractsOne),
+			ApplyFunction(network.Layers[l], util.SubtractsOne),
 		),
 	)
 	weights := DotProduct(Transpose(network.Layers[l-1]), delta)
@@ -145,7 +146,7 @@ func (network *Network) FeedForward() {
 
 		productMatrix := DotProduct(layer, weights)
 		Sum(productMatrix, biases)
-		ApplyFunction(productMatrix, Sigmoid)
+		ApplyFunction(productMatrix, util.Sigmoid)
 
 		network.Layers[i+1] = productMatrix
 	}
@@ -169,7 +170,7 @@ func (sentence Sentence) WordsBag(words []string) (bag []float64) {
 	for _, word := range words {
 
 		var valueToAppend float64
-		if Contains(sentence.stem(), word) {
+		if util.Contains(sentence.stem(), word) {
 			valueToAppend = 1
 		}
 

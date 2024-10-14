@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -22,6 +21,7 @@ import (
 	"path/filepath"
 
 	"github.com/soudy/mathcat"
+	util "marboris/utils"
 )
 
 func GetUserInformation(token string) Information {
@@ -48,7 +48,7 @@ func getResDir(dir string, file string, dir2 ...string) (filePath string) {
 }
 
 func SerializeCountries() (countries []Country) {
-	err := json.Unmarshal(ReadFile(getResDir("datasets","countries.json")), &countries)
+	err := json.Unmarshal(util.ReadFile(getResDir("datasets","countries.json")), &countries)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -203,7 +203,7 @@ func NameGetterReplacer(locale, _, response, token string) (string, string) {
 }
 
 func SerializeNames() (names []string) {
-	namesFile := string(ReadFile(getResDir("datasets","names.txt")))
+	namesFile := string(util.ReadFile(getResDir("datasets","names.txt")))
 
 	names = append(names, strings.Split(strings.TrimSuffix(namesFile, "\n"), "\n")...)
 	return
@@ -314,7 +314,7 @@ func GenresReplacer(locale, entry, response, token string) (string, string) {
 	ChangeUserInformation(token, func(information Information) Information {
 		for _, genre := range genres {
 
-			if Contains(information.MovieGenres, genre) {
+			if util.Contains(information.MovieGenres, genre) {
 				continue
 			}
 
@@ -428,7 +428,7 @@ func SearchMovie(genre, userToken string) (output Movie) {
 	for _, movie := range movies {
 		userMovieBlacklist := GetUserInformation(userToken).MovieBlacklist
 
-		if !Contains(movie.Genres, genre) || Contains(userMovieBlacklist, movie.Name) {
+		if !util.Contains(movie.Genres, genre) || util.Contains(userMovieBlacklist, movie.Name) {
 			continue
 		}
 
@@ -475,167 +475,12 @@ func AdvicesReplacer(locale, entry, response, _ string) (string, string) {
 	return AdvicesTag, fmt.Sprintf(response, advice)
 }
 
-func RegisterRule(rule Rule) {
-	rules = append(rules, rule)
-}
-
-func RuleToday(locale, sentence string) (result time.Time) {
-	todayRegex := regexp.MustCompile(RuleTranslations[locale].RuleToday)
-	today := todayRegex.FindString(sentence)
-
-	if today == "" {
-		return time.Time{}
-	}
-
-	return time.Now()
-}
-
-func RuleTomorrow(locale, sentence string) (result time.Time) {
-	tomorrowRegex := regexp.MustCompile(RuleTranslations[locale].RuleTomorrow)
-	date := tomorrowRegex.FindString(sentence)
-
-	if date == "" {
-		return time.Time{}
-	}
-
-	result = time.Now().Add(day)
-
-	if strings.Contains(date, RuleTranslations[locale].RuleAfterTomorrow) {
-		return result.Add(day)
-	}
-
-	return
-}
-
-func RuleDayOfWeek(locale, sentence string) time.Time {
-	dayOfWeekRegex := regexp.MustCompile(RuleTranslations[locale].RuleDayOfWeek)
-	date := dayOfWeekRegex.FindString(sentence)
-
-	if date == "" {
-		return time.Time{}
-	}
-
-	var foundDayOfWeek int
-
-	for _, dayOfWeek := range daysOfWeek {
-
-		stringDayOfWeek := strings.ToLower(dayOfWeek.String())
-
-		if strings.Contains(date, stringDayOfWeek) {
-			foundDayOfWeek = int(dayOfWeek)
-		}
-	}
-
-	currentDay := int(time.Now().Weekday())
-
-	calculatedDate := foundDayOfWeek - currentDay
-
-	if calculatedDate <= 0 {
-		calculatedDate += 7
-	}
-
-	if strings.Contains(date, RuleTranslations[locale].RuleNextDayOfWeek) {
-		calculatedDate += 7
-	}
-
-	return time.Now().Add(day * time.Duration(calculatedDate))
-}
-
-func RuleNaturalDate(locale, sentence string) time.Time {
-	naturalMonthRegex := regexp.MustCompile(
-		RuleTranslations[locale].RuleNaturalDate,
-	)
-	naturalDayRegex := regexp.MustCompile(`\d{2}|\d`)
-
-	month := naturalMonthRegex.FindString(sentence)
-	day := naturalDayRegex.FindString(sentence)
-
-	if locale != "en" {
-		monthIndex := Index(RuleTranslations[locale].Months, month)
-		month = RuleTranslations["en"].Months[monthIndex]
-	}
-
-	parsedMonth, _ := time.Parse("January", month)
-	parsedDay, _ := strconv.Atoi(day)
-
-	if day == "" && month == "" {
-		return time.Time{}
-	}
-
-	if day == "" {
-		calculatedMonth := parsedMonth.Month() - time.Now().Month()
-
-		if calculatedMonth <= 0 {
-			calculatedMonth += 12
-		}
-
-		return time.Now().AddDate(0, int(calculatedMonth), -time.Now().Day()+1)
-	}
-
-	parsedDate := fmt.Sprintf("%d-%02d-%02d", time.Now().Year(), parsedMonth.Month(), parsedDay)
-	date, err := time.Parse("2006-01-02", parsedDate)
-	if err != nil {
-		return time.Time{}
-	}
-
-	if time.Now().After(date) {
-		date = date.AddDate(1, 0, 0)
-	}
-
-	return date
-}
-
-func RuleDate(locale, sentence string) time.Time {
-	dateRegex := regexp.MustCompile(`(\d{2}|\d)/(\d{2}|\d)`)
-	date := dateRegex.FindString(sentence)
-
-	if date == "" {
-		return time.Time{}
-	}
-
-	parsedDate, err := time.Parse("01/02", date)
-	if err != nil {
-		return time.Time{}
-	}
-
-	parsedDate = parsedDate.AddDate(time.Now().Year(), 0, 0)
-
-	if time.Now().After(parsedDate) {
-		parsedDate = parsedDate.AddDate(1, 0, 0)
-	}
-
-	return parsedDate
-}
-
-func Contains(slice []string, text string) bool {
-	for _, item := range slice {
-		if item == text {
-			return true
-		}
-	}
-
-	return false
-}
-
-func ReadFile(path string) (bytes []byte) {
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		bytes, err = os.ReadFile("../" + path)
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	return bytes
-}
-
 func CacheIntents(locale string, _intents []Intent) {
 	intents[locale] = _intents
 }
 
 func SerializeIntents(locale string) (_intents []Intent) {
-	err := json.Unmarshal(ReadFile(getResDir("locales", "intents.json", locale)), &_intents)
+	err := json.Unmarshal(util.ReadFile(getResDir("locales", "intents.json", locale)), &_intents)
 	if err != nil {
 		panic(err)
 	}
@@ -665,32 +510,11 @@ func SerializeModulesIntents(locale string) []Intent {
 	return intents
 }
 
-func Difference(slice []string, slice2 []string) (difference []string) {
-	for i := 0; i < 2; i++ {
-		for _, s1 := range slice {
-			found := false
-			for _, s2 := range slice2 {
-				if s1 == s2 {
-					found = true
-					break
-				}
-			}
-			if !found {
-				difference = append(difference, s1)
-			}
-		}
-		if i == 0 {
-			slice, slice2 = slice2, slice
-		}
-	}
-	return difference
-}
-
 func removeStopWords(locale string, words []string) []string {
 	if len(words) <= 4 {
 		return words
 	}
-	stopWords := string(ReadFile(getResDir("locales", "stopwords.txt", locale)))
+	stopWords := string(util.ReadFile(getResDir("locales", "stopwords.txt", locale)))
 	var wordsToRemove []string
 	for _, stopWord := range strings.Split(stopWords, "\n") {
 		for _, word := range words {
@@ -700,7 +524,7 @@ func removeStopWords(locale string, words []string) []string {
 			wordsToRemove = append(wordsToRemove, word)
 		}
 	}
-	return Difference(words, wordsToRemove)
+	return util.Difference(words, wordsToRemove)
 }
 
 func GetTagByName(name string) string {
@@ -728,7 +552,7 @@ func Organize(locale string) (words, classes []string, documents []Document) {
 			patternSentence.arrange()
 
 			for _, word := range patternSentence.stem() {
-				if !Contains(words, word) {
+				if !util.Contains(words, word) {
 					words = append(words, word)
 				}
 			}
@@ -748,16 +572,6 @@ func Organize(locale string) (words, classes []string, documents []Document) {
 	return words, classes, documents
 }
 
-func Index(slice []string, text string) int {
-	for i, item := range slice {
-		if item == text {
-			return i
-		}
-	}
-
-	return 0
-}
-
 func TrainData(locale string) (inputs, outputs [][]float64) {
 	words, classes, documents := Organize(locale)
 
@@ -765,7 +579,7 @@ func TrainData(locale string) (inputs, outputs [][]float64) {
 		outputRow := make([]float64, len(classes))
 		bag := document.Sentence.WordsBag(words)
 
-		outputRow[Index(classes, document.Tag)] = 1
+		outputRow[util.Index(classes, document.Tag)] = 1
 
 		inputs = append(inputs, bag)
 		outputs = append(outputs, outputRow)
@@ -894,10 +708,6 @@ func ApplyFunction(matrix Matrix, fn func(x float64) float64) Matrix {
 	})
 }
 
-func Sigmoid(x float64) float64 {
-	return 1 / (1 + math.Exp(-x))
-}
-
 func Differencen(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
@@ -928,14 +738,6 @@ func Transpose(matrix Matrix) (resultMatrix Matrix) {
 	}
 
 	return resultMatrix
-}
-
-func MultipliesByTwo(x float64) float64 {
-	return 2 * x
-}
-
-func SubtractsOne(x float64) float64 {
-	return x - 1
 }
 
 func ApplyRate(matrix Matrix, rate float64) Matrix {

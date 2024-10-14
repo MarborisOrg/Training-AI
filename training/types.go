@@ -1,9 +1,5 @@
 package training
 
-import (
-	"time"
-)
-
 type Country struct {
 	Name     map[string]string `json:"name"`
 	Capital  string            `json:"capital"`
@@ -34,19 +30,6 @@ type Movie struct {
 	Name   string
 	Genres []string
 	Rating float64
-}
-
-type Rule func(string, string) time.Time
-
-type RuleTranslation struct {
-	DaysOfWeek        []string
-	Months            []string
-	RuleToday         string
-	RuleTomorrow      string
-	RuleAfterTomorrow string
-	RuleDayOfWeek     string
-	RuleNextDayOfWeek string
-	RuleNaturalDate   string
 }
 
 type Modulem struct {
