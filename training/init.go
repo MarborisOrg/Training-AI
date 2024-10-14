@@ -1,6 +1,5 @@
 package training
 
-// Init answer (R1)
 func init() {
 	RegisterModules("en", []Modulem{
 		{
