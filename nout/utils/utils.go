@@ -1,4 +1,3 @@
-// No out module
 package utils
 
 import (
